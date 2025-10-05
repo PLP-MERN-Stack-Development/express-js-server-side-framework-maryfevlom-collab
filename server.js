@@ -1,4 +1,4 @@
-// server.js - Complete Express server for Week 2 assignment
+// server.js - Complete Express server with optional MongoDB connection
 require('dotenv').config();
 
 // Import required modules
@@ -6,12 +6,31 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { v4: uuidv4 } = require('uuid');
 
+// Import database connection (optional - only connects if MONGODB_URI is set)
+const connectDB = require('./config/db');
+
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;  // Correct
 
-// Middleware setup
-app.use(bodyParser.json());
+
+// Connect to MongoDB (optional - only if MONGODB_URI is provided in .env)
+if (process.env.MONGODB_URI) {
+  connectDB();
+} else {
+  console.log('No MONGODB_URI found - Using in-memory storage');
+}
+
+// Middleware setup: parse JSON
+app.use(express.json());
+
+//r Routes
+//app.use('/api/students', require('./routes/StudentsRoutes'));
+
+// Default route
+app.get('/', (req, res) => {
+  res.send("API Server for Express.js is up and running..........");
+});
 
 // ============================================
 // CUSTOM ERROR CLASSES (Task 4)
@@ -113,7 +132,7 @@ const validateProduct = (req, res, next) => {
 app.use(requestLogger);
 
 // ============================================
-// SAMPLE DATA
+// SAMPLE DATA (In-memory storage)
 // ============================================
 
 let products = [
@@ -196,7 +215,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    database: process.env.MONGODB_URI ? 'MongoDB (if connected)' : 'In-memory storage'
   });
 });
 
